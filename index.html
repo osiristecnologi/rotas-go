@@ -1,67 +1,132 @@
-# Future DeX: Quantum-Resistant Key Exchange with ML-KEM (Kyber)
-# Simulation based on pure implementations like kyber-py (GiacomoPope/kyber-py)
-# In real usage: pip install kyber-py or use liboqs / noble-post-quantum (JS)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quantum-Resistant DeX</title>
 
-import hashlib
-import os
-from typing import Tuple
+<style>
+body{
+  background:#000;
+  color:#0f0;
+  font-family:monospace;
+  padding:20px;
+}
+button{
+  padding:10px 20px;
+  background:#0f0;
+  border:none;
+  cursor:pointer;
+  font-weight:bold;
+}
+pre{
+  margin-top:20px;
+  white-space:pre-wrap;
+}
+</style>
+</head>
 
-# Simple simulation of ML-KEM-768 (use real library in production!)
-# Here we simulate using large keys and a fictitious encapsulation.
-# Replace with: from kyber_py.ml_kem import ML_KEM_768
+<body>
 
-class ML_KEM_Sim:
-    """Didactic simulation of ML-KEM (DO NOT use in production!)"""
-    
-    @staticmethod
-    def keygen() -> Tuple[bytes, bytes]:
-        # Generate key pair (pk, sk) - real sizes: ~1KB pk, ~2.4KB sk for 768
-        pk = os.urandom(1184)  # approximate size ML-KEM-768
-        sk = os.urandom(2400)
-        return pk, sk
+<h2>🚀 Quantum-Resistant DeX (ML-KEM Simulation)</h2>
+<button onclick="runDex()">Run Secure Swap</button>
 
-    @staticmethod
-    def encaps(pk: bytes) -> Tuple[bytes, bytes]:
-        # Encapsulation: generates ciphertext and shared secret
-        shared_secret = os.urandom(32)  # 256 bits
-        ct = hashlib.sha3_256(pk + shared_secret).digest() + os.urandom(1088)  # simulated ciphertext
-        return shared_secret, ct
+<pre id="output"></pre>
 
-    @staticmethod
-    def decaps(sk: bytes, ct: bytes) -> bytes:
-        # Decapsulation: recovers the same shared secret
-        # Real implementation uses sk to extract the exact same secret
-        return hashlib.sha3_256(sk[:32] + ct[:32]).digest()  # simulation
+<script>
+// ===== Utils =====
+function randomBytes(size){
+  const arr = new Uint8Array(size);
+  crypto.getRandomValues(arr);
+  return arr;
+}
 
-# DeX flow: Alice (maker) and Bob (taker) perform secure key exchange
-def quantum_resistant_dex_swap():
-    print("🚀 Quantum-Resistant DeX - Secure Against Quantum Computing\n")
+async function sha256(data){
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return new Uint8Array(hash);
+}
 
-    # Alice generates her keys (e.g., to receive encrypted orders)
-    alice_pk, alice_sk = ML_KEM_Sim.keygen()
-    print(f"Alice publishes her Public Key (ML-KEM): {alice_pk[:16].hex()}...")
+async function sha3_sim(data){
+  // Navegador não tem SHA3 nativo → usamos SHA-256 como simulação
+  return sha256(data);
+}
 
-    # Bob (taker) encapsulates using Alice's public key
-    shared_secret_bob, ciphertext = ML_KEM_Sim.encaps(alice_pk)
-    print(f"Bob sends Ciphertext to Alice: {ciphertext[:16].hex()}...")
+function concat(a, b){
+  const c = new Uint8Array(a.length + b.length);
+  c.set(a, 0);
+  c.set(b, a.length);
+  return c;
+}
 
-    # Alice decapsulates and recovers the same secret
-    shared_secret_alice = ML_KEM_Sim.decaps(alice_sk, ciphertext)
+function hex(bytes){
+  return Array.from(bytes).map(b => b.toString(16).padStart(2,'0')).join('');
+}
 
-    # Verify if secrets match (they must be identical)
-    assert shared_secret_alice == shared_secret_bob, "Key exchange failed!"
-    print("✅ Shared Secret successfully established (256-bit post-quantum)!")
+// ===== ML-KEM SIM =====
+const ML_KEM_Sim = {
 
-    # Derive symmetric key to protect the swap (e.g., order encryption)
-    symmetric_key = hashlib.sha256(shared_secret_alice).digest()
-    print(f"🔑 Derived symmetric key (for AES-GCM): {symmetric_key[:16].hex()}...")
+  keygen(){
+    const pk = randomBytes(1184);
+    const sk = randomBytes(2400);
+    return {pk, sk};
+  },
 
-    # Example of protected "swap"
-    order = b"Swap 1000 TOKEN_A for 500 TOKEN_B @ price X"
-    # In practice: encrypt order with AES-GCM using symmetric_key
-    print("🔄 Swap order encrypted and sent in a quantum-secure way.")
+  async encaps(pk){
+    const shared = randomBytes(32);
 
-    print("\n🎉 Swap completed on the future DeX! Protected against Shor's algorithm.")
+    const hash = await sha3_sim(concat(pk, shared));
+    const ct = concat(hash, randomBytes(1088));
 
-if __name__ == "__main__":
-    quantum_resistant_dex_swap()
+    return {shared, ct};
+  },
+
+  async decaps(sk, ct){
+    const part1 = sk.slice(0,32);
+    const part2 = ct.slice(0,32);
+
+    return await sha3_sim(concat(part1, part2));
+  }
+};
+
+// ===== DeX FLOW =====
+async function runDex(){
+  const out = document.getElementById("output");
+  out.textContent = "Running...\n\n";
+
+  function log(msg){
+    out.textContent += msg + "\n";
+  }
+
+  log("🚀 Quantum-Resistant DeX - Simulation\n");
+
+  // Alice
+  const {pk: alice_pk, sk: alice_sk} = ML_KEM_Sim.keygen();
+  log("Alice Public Key: " + hex(alice_pk.slice(0,16)) + "...");
+
+  // Bob
+  const {shared: shared_bob, ct} = await ML_KEM_Sim.encaps(alice_pk);
+  log("Bob Ciphertext: " + hex(ct.slice(0,16)) + "...");
+
+  // Alice decaps
+  const shared_alice = await ML_KEM_Sim.decaps(alice_sk, ct);
+
+  // Verificação
+  if(hex(shared_alice) !== hex(shared_bob)){
+    log("❌ Key exchange failed!");
+    return;
+  }
+
+  log("✅ Shared Secret established (Post-Quantum)");
+
+  // Derivação de chave
+  const symmetric = await sha256(shared_alice);
+  log("🔑 Symmetric Key: " + hex(symmetric.slice(0,16)) + "...");
+
+  // Simulação de swap
+  log("🔄 Swap encrypted and sent securely");
+  log("\n🎉 Swap completed (Quantum-safe simulation)");
+}
+</script>
+
+</body>
+</html>
