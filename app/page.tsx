@@ -1,20 +1,9 @@
-import "./globals.css";
+import SwapCard from "../components/SwapCard";
 
-export const metadata = {
-  title: "Quantum DEX",
-  description: "PQC DEX Interface",
-};
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function Home() {
   return (
-    <html lang="pt-BR">
-      <body>
-        {children}
-      </body>
-    </html>
+    <main>
+      <SwapCard />
+    </main>
   );
 }
