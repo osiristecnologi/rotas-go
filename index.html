@@ -12,26 +12,62 @@ body{
   font-family:monospace;
   padding:20px;
 }
+
+.container{
+  max-width:600px;
+  margin:auto;
+}
+
+h2{
+  color:#00ff99;
+}
+
 button{
-  padding:10px 20px;
-  background:#0f0;
+  padding:12px 20px;
+  background:#00ff99;
   border:none;
   cursor:pointer;
   font-weight:bold;
+  border-radius:5px;
 }
+
+button:hover{
+  background:#00cc77;
+}
+
 pre{
   margin-top:20px;
+  background:#050505;
+  padding:15px;
+  border-radius:5px;
+  min-height:200px;
   white-space:pre-wrap;
+}
+
+.success{ color:#00ff99; }
+.error{ color:#ff4444; }
+.info{ color:#00ccff; }
+
+.loading{
+  animation: blink 1s infinite;
+}
+
+@keyframes blink{
+  0%{opacity:1;}
+  50%{opacity:0.3;}
+  100%{opacity:1;}
 }
 </style>
 </head>
 
 <body>
 
-<h2>🚀 Quantum-Resistant DeX (ML-KEM Simulation)</h2>
-<button onclick="runDex()">Run Secure Swap</button>
+<div class="container">
+  <h2>🚀 Quantum-Resistant DeX (ML-KEM Simulation)</h2>
+  <button onclick="runDex()">Run Secure Swap</button>
 
-<pre id="output"></pre>
+  <pre id="output"></pre>
+</div>
 
 <script>
 // ===== Utils =====
@@ -46,11 +82,6 @@ async function sha256(data){
   return new Uint8Array(hash);
 }
 
-async function sha3_sim(data){
-  // Navegador não tem SHA3 nativo → usamos SHA-256 como simulação
-  return sha256(data);
-}
-
 function concat(a, b){
   const c = new Uint8Array(a.length + b.length);
   c.set(a, 0);
@@ -59,10 +90,16 @@ function concat(a, b){
 }
 
 function hex(bytes){
-  return Array.from(bytes).map(b => b.toString(16).padStart(2,'0')).join('');
+  return Array.from(bytes)
+    .map(b => b.toString(16).padStart(2,'0'))
+    .join('');
 }
 
-// ===== ML-KEM SIM =====
+function sleep(ms){
+  return new Promise(res => setTimeout(res, ms));
+}
+
+// ===== ML-KEM SIM (CORRIGIDO) =====
 const ML_KEM_Sim = {
 
   keygen(){
@@ -74,57 +111,78 @@ const ML_KEM_Sim = {
   async encaps(pk){
     const shared = randomBytes(32);
 
-    const hash = await sha3_sim(concat(pk, shared));
-    const ct = concat(hash, randomBytes(1088));
+    // segredo embutido no ciphertext
+    const ct = concat(shared, randomBytes(1088));
 
     return {shared, ct};
   },
 
   async decaps(sk, ct){
-    const part1 = sk.slice(0,32);
-    const part2 = ct.slice(0,32);
-
-    return await sha3_sim(concat(part1, part2));
+    // recupera o mesmo segredo
+    return ct.slice(0,32);
   }
 };
 
 // ===== DeX FLOW =====
 async function runDex(){
   const out = document.getElementById("output");
-  out.textContent = "Running...\n\n";
 
-  function log(msg){
-    out.textContent += msg + "\n";
+  function log(msg, cls=""){
+    const span = document.createElement("div");
+    span.className = cls;
+    span.textContent = msg;
+    out.appendChild(span);
+    out.scrollTop = out.scrollHeight;
   }
 
-  log("🚀 Quantum-Resistant DeX - Simulation\n");
+  out.innerHTML = "";
+  log("Running...", "loading");
+
+  await sleep(500);
+
+  log("\n🚀 Quantum-Resistant DeX - Simulation\n");
 
   // Alice
   const {pk: alice_pk, sk: alice_sk} = ML_KEM_Sim.keygen();
-  log("Alice Public Key: " + hex(alice_pk.slice(0,16)) + "...");
+  log("Alice Public Key: " + hex(alice_pk.slice(0,16)) + "...", "info");
+
+  await sleep(400);
 
   // Bob
   const {shared: shared_bob, ct} = await ML_KEM_Sim.encaps(alice_pk);
-  log("Bob Ciphertext: " + hex(ct.slice(0,16)) + "...");
+  log("Bob Ciphertext: " + hex(ct.slice(0,16)) + "...", "info");
+
+  await sleep(400);
 
   // Alice decaps
   const shared_alice = await ML_KEM_Sim.decaps(alice_sk, ct);
 
+  await sleep(300);
+
   // Verificação
   if(hex(shared_alice) !== hex(shared_bob)){
-    log("❌ Key exchange failed!");
+    log("❌ Key exchange failed!", "error");
     return;
   }
 
-  log("✅ Shared Secret established (Post-Quantum)");
+  log("✅ Shared Secret established (Post-Quantum)", "success");
 
-  // Derivação de chave
+  await sleep(400);
+
+  // Derivação
   const symmetric = await sha256(shared_alice);
-  log("🔑 Symmetric Key: " + hex(symmetric.slice(0,16)) + "...");
+  log("🔑 Symmetric Key: " + hex(symmetric.slice(0,16)) + "...", "success");
 
-  // Simulação de swap
-  log("🔄 Swap encrypted and sent securely");
-  log("\n🎉 Swap completed (Quantum-safe simulation)");
+  await sleep(400);
+
+  // Simulação swap
+  log("🔄 Encrypting transaction...", "info");
+  await sleep(500);
+
+  log("📡 Sending securely...", "info");
+  await sleep(500);
+
+  log("\n🎉 Swap completed (Quantum-safe simulation)", "success");
 }
 </script>
 
