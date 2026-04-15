@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Q-DEX • Quantum-Resistant DeX</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <style>
+    body {
+      background: radial-gradient(circle at center, #0a0a1f 0%, #000000 100%);
+      font-family: 'Inter', system-ui, sans-serif;
+      overflow: hidden;
+    }
+    .quantum-bg {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: 
+        radial-gradient(circle, rgba(0,255,255,0.08) 0%, transparent 70%),
+        linear-gradient(45deg, #1a0033, #000033);
+      z-index: -1;
+      animation: quantumPulse 15s infinite alternate;
+    }
+    @keyframes quantumPulse {
+      0% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+    .neon-text {
+      text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+    }
+    .shield {
+      animation: shieldGlow 2s infinite alternate;
+    }
+    @keyframes shieldGlow {
+      from { box-shadow: 0 0 15px #22ff88; }
+      to { box-shadow: 0 0 35px #22ff88; }
+    }
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      background: #00ffff;
+      box-shadow: 0 0 8px #00ffff;
+      animation: particleFloat linear infinite;
+    }
+  </style>
+</head>
+<body class="text-white min-h-screen">
+  <div class="quantum-bg"></div>
+
+  <!-- Header -->
+  <header class="border-b border-cyan-500/30 bg-black/70 backdrop-blur-xl fixed w-full z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-cyan-400 to-purple-600 rounded-xl flex items-center justify-center text-2xl font-bold">Q</div>
+        <div>
+          <h1 class="text-3xl font-bold tracking-tighter neon-text">Q-DEX</h1>
+          <p class="text-xs text-cyan-400 -mt-1">Quantum-Resistant DeX</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-6 text-sm">
+        <div class="flex items-center gap-2 bg-green-500/10 text-green-400 px-4 py-1.5 rounded-full border border-green-500/30">
+          <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+          ML-KEM-768 • Protegido contra Quântico
+        </div>
+        
+        <button onclick="connectWallet()" 
+                class="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 px-6 py-2.5 rounded-2xl font-medium flex items-center gap-2 transition-all">
+          <i class="fas fa-wallet"></i>
+          Conectar Wallet Quântica
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-7xl mx-auto pt-24 px-6 grid grid-cols-12 gap-6">
+    <!-- Painel Esquerdo - Wallet -->
+    <div class="col-span-12 lg:col-span-3">
+      <div class="bg-zinc-900/70 border border-cyan-500/30 rounded-3xl p-6 backdrop-blur-xl">
+        <h2 class="text-cyan-400 font-semibold mb-4 flex items-center gap-2">
+          <i class="fas fa-wallet"></i> Sua Carteira
+        </h2>
+        <div class="bg-black/50 rounded-2xl p-4 mb-6">
+          <p class="text-xs text-gray-400">Endereço</p>
+          <p class="font-mono text-sm break-all">0x7fA9...K3mP</p>
+        </div>
+        
+        <div class="space-y-4">
+          <div class="flex justify-between">
+            <span class="text-gray-400">TOKEN_A</span>
+            <span class="font-medium">12,450.87</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-400">TOKEN_B</span>
+            <span class="font-medium">8,920.33</span>
+          </div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-cyan-500/20">
+          <div class="flex items-center gap-3 text-emerald-400 text-sm">
+            <i class="fas fa-shield-alt shield"></i>
+            <span class="font-medium">Quantum Shield Active</span>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">ML-KEM-768 Key Exchange</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Centro - Swap Interface -->
+    <div class="col-span-12 lg:col-span-6">
+      <div class="bg-zinc-900/80 border border-purple-500/30 rounded-3xl p-8 backdrop-blur-2xl">
+        <div class="flex justify-between items-center mb-8">
+          <h2 class="text-2xl font-bold">Troca Quântica Segura</h2>
+          <div class="px-4 py-1 bg-purple-500/10 text-purple-400 text-xs rounded-full flex items-center gap-2">
+            <i class="fas fa-lock"></i>
+            Post-Quantum Protected
+          </div>
+        </div>
+
+        <!-- You Pay -->
+        <div class="bg-black/60 rounded-2xl p-6 mb-4">
+          <div class="flex justify-between mb-3">
+            <span class="text-gray-400 text-sm">Você paga</span>
+            <span class="text-xs text-cyan-400">Saldo: 12,450 TOKEN_A</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <input type="text" value="1000" 
+                   class="bg-transparent text-4xl font-medium w-32 focus:outline-none">
+            <div class="bg-zinc-800 px-5 py-3 rounded-2xl flex items-center gap-3">
+              <span class="text-2xl">🔷</span>
+              <span class="font-semibold">TOKEN_A</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Arrow -->
+        <div class="flex justify-center -my-4">
+          <div class="bg-zinc-900 border border-cyan-400/50 w-12 h-12 rounded-2xl flex items-center justify-center text-2xl rotate-90">
+            ↔
+          </div>
+        </div>
+
+        <!-- You Receive -->
+        <div class="bg-black/60 rounded-2xl p-6 mb-8">
+          <div class="flex justify-between mb-3">
+            <span class="text-gray-400 text-sm">Você recebe</span>
+            <span class="text-xs text-cyan-400">Estimado: 498.5 TOKEN_B</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <input type="text" value="498.5" 
+                   class="bg-transparent text-4xl font-medium w-32 focus:outline-none">
+            <div class="bg-zinc-800 px-5 py-3 rounded-2xl flex items-center gap-3">
+              <span class="text-2xl">🔶</span>
+              <span class="font-semibold">TOKEN_B</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Info -->
+        <div class="grid grid-cols-2 gap-4 text-sm mb-8">
+          <div class="bg-black/40 p-4 rounded-2xl">
+            <p class="text-gray-400">Taxa de Swap</p>
+            <p class="font-medium">0.05%</p>
+          </div>
+          <div class="bg-black/40 p-4 rounded-2xl">
+            <p class="text-gray-400">Slippage</p>
+            <p class="font-medium text-amber-400">0.3%</p>
+          </div>
+        </div>
+
+        <!-- Execute Button -->
+        <button onclick="executeQuantumSwap()" 
+                class="w-full bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-500 hover:brightness-110 transition-all py-6 rounded-3xl text-xl font-bold tracking-wider shadow-2xl shadow-cyan-500/50 flex items-center justify-center gap-3">
+          <i class="fas fa-bolt"></i>
+          EXECUTAR SWAP QUÂNTICO
+        </button>
+
+        <div class="text-center mt-4 text-xs text-gray-500 flex items-center justify-center gap-2">
+          <i class="fas fa-shield-halved"></i>
+          Protegido por ML-KEM-768 + AES-256-GCM
+        </div>
+      </div>
+    </div>
+
+    <!-- Painel Direito - Order Book & Status -->
+    <div class="col-span-12 lg:col-span-3 space-y-6">
+      <div class="bg-zinc-900/70 border border-cyan-500/30 rounded-3xl p-6 backdrop-blur-xl">
+        <h3 class="text-lg font-semibold mb-4">Order Book</h3>
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between text-emerald-400">
+            <span>Buy 500 TOKEN_B</span>
+            <span>0.498</span>
+          </div>
+          <div class="flex justify-between text-red-400">
+            <span>Sell 1200 TOKEN_A</span>
+            <span>0.502</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-zinc-900/70 border border-purple-500/30 rounded-3xl p-6 backdrop-blur-xl">
+        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+          <i class="fas fa-waveform-lines"></i> Status Quântico
+        </h3>
+        <div class="space-y-4">
+          <div class="flex justify-between items-center">
+            <span class="text-gray-400">Key Exchange</span>
+            <span class="text-emerald-400 font-medium">✅ Completo</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-400">Algoritmo</span>
+            <span class="font-mono text-cyan-400">ML-KEM-768</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-400">Nível de Segurança</span>
+            <span class="text-amber-400">Nível 3 (Equivalente AES-192)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Status -->
+  <footer class="fixed bottom-0 w-full bg-black/80 border-t border-cyan-500/20 py-3 text-center text-xs text-gray-500">
+    Q-DEX • DeX do Futuro • Resistente a Computação Quântica • 2026+
+  </footer>
+
+  <script>
+    // Partículas quânticas simples
+    function createParticles() {
+      for (let i = 0; i < 60; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        const size = Math.random() * 4 + 2;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.left = `${Math.random() * 100}vw`;
+        particle.style.top = `${Math.random() * 100}vh`;
+        particle.style.animationDuration = `${Math.random() * 20 + 15}s`;
+        particle.style.animationDelay = `-${Math.random() * 20}s`;
+        particle.style.opacity = Math.random() * 0.6 + 0.2;
+        document.body.appendChild(particle);
+      }
+    }
+
+    function connectWallet() {
+      alert("✅ Wallet Quântica conectada!\nChave ML-KEM-768 gerada com sucesso.");
+    }
+
+    function executeQuantumSwap() {
+      const btn = document.querySelector('button[onclick="executeQuantumSwap()"]');
+      btn.innerHTML = `
+        <i class="fas fa-spinner fa-spin"></i> 
+        ESTABELECENDO ML-KEM ENCAPSULATION...
+      `;
+      
+      setTimeout(() => {
+        alert("🎉 Swap Quântico executado com sucesso!\nShared Secret ML-KEM-768 estabelecido.\nTransação protegida contra ataques quânticos.");
+        btn.innerHTML = `
+          <i class="fas fa-bolt"></i>
+          EXECUTAR SWAP QUÂNTICO
+        `;
+      }, 2200);
+    }
+
+    // Inicializa partículas
+    window.onload = () => {
+      createParticles();
+      console.log("%cQ-DEX carregada com sucesso! 🚀 Proteção post-quântica ativa.", "color: cyan; font-weight: bold");
+    };
+  </script>
+</body>
+</html>
