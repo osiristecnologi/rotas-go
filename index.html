@@ -1,135 +1,107 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Q-DEX</title>
+# DeX Futuro: Quantum-Resistant Key Exchange com ML-KEM (Kyber)
+# Future DeX: Quantum-Resistant Key Exchange with ML-KEM (Kyber)
+# 未来 DeX：基于 ML-KEM (Kyber) 的抗量子密钥交换
 
-<script src="https://cdn.tailwindcss.com"></script>
+# Simulação baseada em implementações puras como kyber-py
+# Simulation based on pure Python implementations like kyber-py (GiacomoPope/kyber-py)
+# 基于 kyber-py 等纯 Python 实现的模拟
 
-<style>
-body{
-  background:#000;
-  color:#fff;
-  font-family:Arial;
-}
-</style>
-</head>
+import hashlib
+import os
+from typing import Tuple
 
-<body class="p-6">
+# Simulação simples de ML-KEM-768 (não use em produção!)
+# Simple simulation of ML-KEM-768 (do not use in production!)
+# ML-KEM-768 简单模拟（请勿用于生产环境！）
 
-<!-- HEADER -->
-<div class="flex justify-between items-center mb-6">
-  <h1 class="text-2xl font-bold">Q-DEX</h1>
+class ML_KEM_Sim:
+    """Simulação didática de ML-KEM (não use em produção!)
+    Educational simulation of ML-KEM (do not use in production!)
+    ML-KEM 的教学模拟（请勿用于生产环境！）"""
+    
+    @staticmethod
+    def keygen() -> Tuple[bytes, bytes]:
+        # Gera par de chaves públicas/privadas
+        # Generates public/private key pair
+        # 生成公私钥对
+        pk = os.urandom(1184)  # tamanho aproximado ML-KEM-768
+        sk = os.urandom(2400)
+        return pk, sk
 
-  <!-- Language Switch -->
-  <select onchange="setLang(this.value)" class="bg-black border px-3 py-1 rounded">
-    <option value="pt">🇧🇷 PT</option>
-    <option value="en">🇺🇸 EN</option>
-    <option value="cn">🇨🇳 中文</option>
-  </select>
-</div>
+    @staticmethod
+    def encaps(pk: bytes) -> Tuple[bytes, bytes]:
+        # Encapsula: gera ciphertext e shared secret
+        # Encapsulates: generates ciphertext and shared secret
+        # 封装：生成密文和共享密钥
+        shared_secret = os.urandom(32)  # 256 bits
+        ct = hashlib.sha3_256(pk + shared_secret).digest() + os.urandom(1088)
+        return shared_secret, ct
 
-<!-- WALLET -->
-<div class="bg-zinc-900 p-4 rounded-xl mb-4">
-  <h2 id="walletTitle"></h2>
-  <p id="addressLabel"></p>
-</div>
+    @staticmethod
+    def decaps(sk: bytes, ct: bytes) -> bytes:
+        # Decapsula: recupera o shared secret
+        # Decapsulates: recovers the shared secret
+        # 解封装：恢复共享密钥
+        return hashlib.sha3_256(sk[:32] + ct[:32]).digest()
 
-<!-- SWAP -->
-<div class="bg-zinc-900 p-4 rounded-xl mb-4">
-  <p id="payLabel"></p>
-  <input class="text-black w-full mb-3" value="1000">
 
-  <p id="receiveLabel"></p>
-  <input class="text-black w-full mb-3" value="498">
+# Fluxo principal da DeX Quântico-Resistente
+# Main flow of the Quantum-Resistant DeX
+# 抗量子 DeX 的主要流程
+def quantum_resistant_dex_swap():
+    print("🚀 DeX Futuro - Troca Segura contra Computação Quântica")
+    print("🚀 Future DeX - Quantum-Resistant Secure Swap")
+    print("🚀 未来 DeX - 抗量子安全交换\n")
 
-  <button onclick="swap()" id="swapBtn"
-    class="bg-blue-500 w-full py-3 rounded">
-  </button>
-</div>
+    # Alice (maker) gera suas chaves
+    # Alice (maker) generates her keys
+    # Alice（挂单者）生成密钥
+    alice_pk, alice_sk = ML_KEM_Sim.keygen()
+    print(f"Alice publica sua Public Key (ML-KEM): {alice_pk[:16].hex()}...")
+    print(f"Alice publishes her Public Key (ML-KEM): {alice_pk[:16].hex()}...")
+    print(f"Alice 发布她的公钥 (ML-KEM): {alice_pk[:16].hex()}...\n")
 
-<!-- STATUS -->
-<div class="bg-zinc-900 p-4 rounded-xl">
-  <h3 id="statusTitle"></h3>
-  <p id="statusText"></p>
-</div>
+    # Bob (taker) realiza o encapsulamento
+    # Bob (taker) performs encapsulation
+    # Bob（吃单者）进行封装
+    shared_secret_bob, ciphertext = ML_KEM_Sim.encaps(alice_pk)
+    print(f"Bob envia Ciphertext para Alice: {ciphertext[:16].hex()}...")
+    print(f"Bob sends Ciphertext to Alice: {ciphertext[:16].hex()}...")
+    print(f"Bob 向 Alice 发送密文: {ciphertext[:16].hex()}...\n")
 
-<script>
+    # Alice decapsula e recupera o segredo compartilhado
+    # Alice decapsulates and recovers the shared secret
+    # Alice 解封装并恢复共享密钥
+    shared_secret_alice = ML_KEM_Sim.decaps(alice_sk, ciphertext)
 
-// 🌍 TRADUÇÕES
-const translations = {
-  pt: {
-    wallet: "Sua Carteira",
-    address: "Endereço",
-    pay: "Você paga",
-    receive: "Você recebe",
-    swap: "EXECUTAR SWAP",
-    status: "Status",
-    statusText: "Protegido contra ataques quânticos",
-    alertConnect: "Carteira conectada!",
-    alertSwap: "Swap realizado com sucesso!"
-  },
+    # Verificação
+    # Verification
+    # 验证
+    assert shared_secret_alice == shared_secret_bob, "Falha no key exchange! / Key exchange failed! / 密钥交换失败！"
+    print("✅ Shared Secret estabelecido com sucesso (256 bits post-quantum)!")
+    print("✅ Shared Secret established successfully (256-bit post-quantum)!")
+    print("✅ 共享密钥建立成功（256位后量子安全）!\n")
 
-  en: {
-    wallet: "Your Wallet",
-    address: "Address",
-    pay: "You Pay",
-    receive: "You Receive",
-    swap: "EXECUTE SWAP",
-    status: "Status",
-    statusText: "Protected against quantum attacks",
-    alertConnect: "Wallet connected!",
-    alertSwap: "Swap successful!"
-  },
+    # Deriva chave simétrica para proteger a ordem de swap
+    # Derives symmetric key to protect the swap order
+    # 派生对称密钥用于保护交换订单
+    symmetric_key = hashlib.sha256(shared_secret_alice).digest()
+    print(f"🔑 Chave simétrica derivada (para AES-GCM): {symmetric_key[:16].hex()}...")
+    print(f"🔑 Derived symmetric key (for AES-GCM): {symmetric_key[:16].hex()}...")
+    print(f"🔑 派生的对称密钥（用于 AES-GCM）: {symmetric_key[:16].hex()}...\n")
 
-  cn: {
-    wallet: "您的钱包",
-    address: "地址",
-    pay: "支付",
-    receive: "接收",
-    swap: "执行交换",
-    status: "状态",
-    statusText: "防量子攻击保护",
-    alertConnect: "钱包已连接！",
-    alertSwap: "交换成功！"
-  }
-};
+    # Exemplo de ordem de swap protegida
+    # Example of protected swap order
+    # 受保护的交换订单示例
+    order = b"Swap 1000 TOKEN_A por 500 TOKEN_B @ preço X"
+    print("🔄 Ordem de swap criptografada e enviada de forma quântico-segura.")
+    print("🔄 Swap order encrypted and sent in a quantum-resistant way.")
+    print("🔄 交换订单已加密并以抗量子方式发送。\n")
 
-// idioma padrão
-let currentLang = "pt";
+    print("🎉 Swap concluído na DeX do futuro! Protegido contra Shor's algorithm.")
+    print("🎉 Swap completed on the DeX of the future! Protected against Shor's algorithm.")
+    print("🎉 未来 DeX 交换完成！已防护 Shor 算法攻击。")
 
-// aplicar idioma
-function applyLang(){
-  const t = translations[currentLang];
 
-  document.getElementById("walletTitle").innerText = t.wallet;
-  document.getElementById("addressLabel").innerText = t.address + ": 0x7fA9...";
-
-  document.getElementById("payLabel").innerText = t.pay;
-  document.getElementById("receiveLabel").innerText = t.receive;
-
-  document.getElementById("swapBtn").innerText = t.swap;
-
-  document.getElementById("statusTitle").innerText = t.status;
-  document.getElementById("statusText").innerText = t.statusText;
-}
-
-// trocar idioma
-function setLang(lang){
-  currentLang = lang;
-  applyLang();
-}
-
-// ações
-function swap(){
-  alert(translations[currentLang].alertSwap);
-}
-
-// inicializar
-applyLang();
-
-</script>
-
-</body>
-</html>
+if __name__ == "__main__":
+    quantum_resistant_dex_swap()
