@@ -1,121 +1,50 @@
-# DeX Futuro: Quantum-Resistant Key Exchange com ML-KEM (Kyber)
-# Simulação baseada em implementações puras como kyber-py
-# Na vida real: pip install kyber-py  (ou use liboqs / noble-post-quantum)
+# ===== SISTEMA DE IDIOMA =====
+LANG = "pt"
 
-import hashlib
-import os
-import sys
-from typing import Tuple, Dict
-
-# ====================== MULTI-LANGUAGE SUPPORT ======================
-LANGUAGES = {
-    "1": "pt",
-    "2": "en",
-    "3": "zh"
-}
-
-TRANSLATIONS: Dict[str, Dict[str, str]] = {
+translations = {
     "pt": {
-        "title": "🚀 DeX Quântico-Resistente - Troca Segura contra Computação Quântica",
-        "alice_pk": "Alice publica sua Public Key (ML-KEM): {}",
-        "bob_ct": "Bob envia Ciphertext para Alice: {}",
+        "start": "🚀 DeX Quântico-Resistente - Troca Segura contra Computação Quântica\n",
+        "alice_pk": "Alice publica sua Public Key (ML-KEM):",
+        "bob_ct": "Bob envia Ciphertext para Alice:",
         "success": "✅ Shared Secret estabelecido com sucesso (256 bits post-quantum)!",
-        "sym_key": "🔑 Chave simétrica derivada (para AES-GCM): {}",
-        "order": "🔄 Ordem de swap criptografada e enviada de forma quântico-segura.",
-        "conclusion": "🎉 Swap concluído na DeX do futuro! Protegido contra Shor's algorithm.",
-        "choose_lang": "\nEscolha o idioma / Choose language / 选择语言:\n1. Português\n2. English\n3. 中文\nDigite o número (1/2/3): ",
-        "invalid_lang": "Idioma inválido! Usando Português por padrão.",
-        "running": "Executando simulação..."
+        "key": "🔑 Chave simétrica derivada (para AES-GCM):",
+        "swap": "🔄 Ordem de swap criptografada e enviada de forma quântico-segura.",
+        "done": "🎉 Swap concluído na DeX do futuro!"
     },
     "en": {
-        "title": "🚀 Quantum-Resistant DeX - Secure Exchange against Quantum Computing",
-        "alice_pk": "Alice publishes her Public Key (ML-KEM): {}",
-        "bob_ct": "Bob sends Ciphertext to Alice: {}",
-        "success": "✅ Shared Secret established successfully (256-bit post-quantum)!",
-        "sym_key": "🔑 Derived symmetric key (for AES-GCM): {}",
-        "order": "🔄 Swap order encrypted and sent in a quantum-safe way.",
-        "conclusion": "🎉 Swap completed on the DeX of the future! Protected against Shor's algorithm.",
-        "choose_lang": "\nChoose language:\n1. Português\n2. English\n3. 中文\nEnter the number (1/2/3): ",
-        "invalid_lang": "Invalid language! Using English by default.",
-        "running": "Running simulation..."
+        "start": "🚀 Quantum-Resistant DeX - Secure Swap against Quantum Computing\n",
+        "alice_pk": "Alice publishes her Public Key (ML-KEM):",
+        "bob_ct": "Bob sends Ciphertext to Alice:",
+        "success": "✅ Shared Secret successfully established (256-bit post-quantum)!",
+        "key": "🔑 Derived symmetric key (for AES-GCM):",
+        "swap": "🔄 Swap order encrypted and sent securely.",
+        "done": "🎉 Swap completed in the future DeX!"
     },
     "zh": {
-        "title": "🚀 量子抗性 DeX - 抵抗量子计算的安全交换",
-        "alice_pk": "Alice 发布她的公钥 (ML-KEM): {}",
-        "bob_ct": "Bob 发送密文给 Alice: {}",
-        "success": "✅ 共享密钥建立成功 (256 位后量子安全)!",
-        "sym_key": "🔑 派生的对称密钥 (用于 AES-GCM): {}",
-        "order": "🔄 交换订单已加密并以量子安全方式发送。",
-        "conclusion": "🎉 未来 DeX 上的交换已完成！受保护免受 Shor's 算法攻击。",
-        "choose_lang": "\n选择语言:\n1. Português\n2. English\n3. 中文\n输入数字 (1/2/3): ",
-        "invalid_lang": "无效语言！默认使用中文。",
-        "running": "正在运行模拟..."
+        "start": "🚀 抗量子DeX - 安全交换系统\n",
+        "alice_pk": "Alice 发布她的公钥 (ML-KEM):",
+        "bob_ct": "Bob 向 Alice 发送密文:",
+        "success": "✅ 成功建立共享密钥（256位后量子）！",
+        "key": "🔑 派生对称密钥 (AES-GCM):",
+        "swap": "🔄 交换订单已加密并安全发送。",
+        "done": "🎉 交换完成！"
     }
 }
 
-def get_translation(lang: str, key: str) -> str:
-    """Retorna o texto traduzido ou fallback para inglês."""
-    return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, key)
+def t(key):
+    return translations[LANG][key]
 
-# ====================== ML-KEM SIMULATION ======================
-class ML_KEM_Sim:
-    """Simulação didática de ML-KEM (não use em produção!)"""
-    @staticmethod
-    def keygen() -> Tuple[bytes, bytes]:
-        pk = os.urandom(1184)  # \~ ML-KEM-768 public key size
-        sk = os.urandom(2400)  # \~ private key size
-        return pk, sk
+# Escolher idioma
+print("Escolha idioma / Choose language / 选择语言:")
+print("1 - Português 🇧🇷")
+print("2 - English 🇺🇸")
+print("3 - 中文 🇨🇳")
 
-    @staticmethod
-    def encaps(pk: bytes) -> Tuple[bytes, bytes]:
-        shared_secret = os.urandom(32)  # 256 bits
-        ct = hashlib.sha3_256(pk + shared_secret).digest() + os.urandom(1088)
-        return shared_secret, ct
+choice = input(">> ")
 
-    @staticmethod
-    def decaps(sk: bytes, ct: bytes) -> bytes:
-        # Simulação simples (em produção use implementação real)
-        return hashlib.sha3_256(sk[:32] + ct[:32]).digest()
-
-
-def quantum_resistant_dex_swap(lang: str = "pt"):
-    t = lambda k: get_translation(lang, k)
-    
-    print(t("title") + "\n")
-    print(t("running") + "\n")
-
-    # Alice (maker) gera chaves
-    alice_pk, alice_sk = ML_KEM_Sim.keygen()
-    print(t("alice_pk").format(alice_pk[:16].hex() + "..."))
-
-    # Bob (taker) encapsula
-    shared_secret_bob, ciphertext = ML_KEM_Sim.encaps(alice_pk)
-    print(t("bob_ct").format(ciphertext[:16].hex() + "..."))
-
-    # Alice decapsula
-    shared_secret_alice = ML_KEM_Sim.decaps(alice_sk, ciphertext)
-
-    # Verificação
-    assert shared_secret_alice == shared_secret_bob, "Falha no key exchange!"
-    print(t("success"))
-
-    # Deriva chave simétrica
-    symmetric_key = hashlib.sha256(shared_secret_alice).digest()
-    print(t("sym_key").format(symmetric_key[:16].hex() + "..."))
-
-    # Exemplo de ordem protegida
-    print(t("order"))
-
-    print("\n" + t("conclusion"))
-
-
-if __name__ == "__main__":
-    print("🌐 DeX Futuro - Quantum-Resistant Key Exchange (ML-KEM)")
-    
-    choice = input(TRANSLATIONS["pt"]["choose_lang"]).strip()
-    lang_code = LANGUAGES.get(choice, "pt")
-    
-    if choice not in LANGUAGES:
-        print(TRANSLATIONS.get(lang_code, TRANSLATIONS["en"])["invalid_lang"])
-    
-    quantum_resistant_dex_swap(lang_code)
+if choice == "2":
+    LANG = "en"
+elif choice == "3":
+    LANG = "zh"
+else:
+    LANG = "pt"
