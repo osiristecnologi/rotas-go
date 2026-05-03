@@ -1,100 +1,391 @@
-require('dotenv').config();
-const express = require('express');
-const helmet = require('helmet');
-const cors = require('cors');
-const multer = require('multer');
-const jwt = require('jsonwebtoken');
-const path = require('path');
+document.addEventListener('DOMContentLoaded', () => {
 
-const app = express();
+    // --- Configurações ---
+    mapboxgl.accessToken = 'pk.eyJ1IjoibGVvbmFyZG8tZmFyaWFzIiwiYSI6ImNtb3ExdjYzejA1dDkycXByeGprNmp5NnkifQ.a6DviekaVOcZm8k-kqAfpQ';
 
-// Segurança básica
-app.use(helmet());
-app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
 
-// Configuração de Upload (Temporário)
-// Nota: Em produção, use armazenamento em nuvem (S3/Cloudinary).
-const storage = multer.memoryStorage(); 
-const upload = multer({ 
-    storage: storage,
-    limits: { files: 5, fileSize: 5 * 1024 * 1024 } // Máximo 5 arquivos, 5MB cada
-});
+    // --- Inicializar mapa ---
+    if (document.getElementById('map')) {
 
-// Middleware de Autenticação (Simulado para o exemplo)
-const verifyToken = (req, res, next) => {
-    const token = req.header('Authorization');
-    if (!token) return res.status(401).json({ error: 'Acesso negado' });
+        new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v12',
+            center: [-47.8825, -15.7942],
+            zoom: 13
+        });
 
-    try {
-        // Verifique a assinatura JWT real aqui
-        const verified = jwt.verify(token.split(' ')[1], process.env.JWT_SECRET);
-        req.user = verified; // Deve conter { id, plan: 'free' | 'premium' }
-        next();
-    } catch (err) {
-        res.status(400).json({ error: 'Token inválido' });
-    }
-};
-
-// Middleware de Validação de Upload (Lógica de Segurança Real)
-const validateUpload = (req, res, next) => {
-    const files = req.files;
-    const userPlan = req.user.plan; // 'free' ou 'premium'
-
-    if (!files || files.length === 0) {
-        return res.status(400).json({ error: 'Nenhuma imagem enviada' });
     }
 
-    // Verificar MIME Types
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    for (let file of files) {
-        if (!allowedTypes.includes(file.mimetype)) {
-            return res.status(400).json({ error: 'Formato de imagem inválido' });
+
+    // --- Elementos ---
+    const navItems = document.querySelectorAll('.nav-item');
+    const screens = document.querySelectorAll('.screen');
+
+    const pixKeyElement = document.getElementById('pixKey');
+
+    const adForm = document.getElementById('adForm');
+    const photosInput = document.getElementById('photos');
+    const photoError = document.getElementById('photo-error');
+
+
+    // --- Navegação SPA ---
+    navItems.forEach(item => {
+
+        item.addEventListener('click', () => {
+
+            const targetId = item.getAttribute('data-target');
+
+            screens.forEach(screen => {
+                screen.classList.remove('active');
+                screen.style.display = 'none';
+            });
+
+            const targetScreen =
+                document.getElementById(targetId);
+
+            if (targetScreen) {
+
+                targetScreen.style.display = 'block';
+                targetScreen.classList.add('active');
+
+            }
+
+            if (targetId === 'screen-premium') {
+                fetchPixKey();
+            }
+
+        });
+
+    });
+
+
+    // --- Carregar chave PIX ---
+    async function fetchPixKey() {
+
+        if (!pixKeyElement) return;
+
+        try {
+
+            const res =
+                await fetch('/api/config/pix');
+
+            const data =
+                await res.json();
+
+            if (data.pixKey) {
+
+                pixKeyElement.textContent =
+                    data.pixKey;
+
+            } else {
+
+                pixKeyElement.textContent =
+                    "Erro ao carregar.";
+
+            }
+
+        } catch (error) {
+
+            console.error(error);
+
+            pixKeyElement.textContent =
+                "Indisponível.";
+
         }
+
     }
 
-    // Verificar Limites por Plano
-    if (userPlan === 'free' && files.length > 2) {
-        return res.status(403).json({ error: 'Plano Grátis: máximo de 2 fotos.' });
+
+    // --- Copiar PIX ---
+    const copyPixBtn =
+        document.getElementById('btn-copy-pix');
+
+    if (copyPixBtn) {
+
+        copyPixBtn.addEventListener('click', () => {
+
+            const key =
+                pixKeyElement.textContent;
+
+            if (
+                key &&
+                key !== "Carregando..."
+            ) {
+
+                navigator.clipboard
+                    .writeText(key)
+                    .then(() => {
+
+                        alert("Chave copiada!");
+
+                    });
+
+            }
+
+        });
+
     }
-    if (userPlan === 'premium' && files.length > 5) {
-        return res.status(403).json({ error: 'Plano Premium: máximo de 5 fotos.' });
+
+
+    // --- Solicitar premium ---
+    const premiumBtn =
+        document.getElementById(
+            'btn-request-premium'
+        );
+
+    if (premiumBtn) {
+
+        premiumBtn.addEventListener(
+            'click',
+            async () => {
+
+                premiumBtn.textContent =
+                    "Enviando...";
+
+                premiumBtn.disabled =
+                    true;
+
+                try {
+
+                    const token =
+                        localStorage.getItem(
+                            'token'
+                        );
+
+                    const res =
+                        await fetch(
+                            '/api/premium/request',
+                            {
+                                method: 'POST',
+
+                                headers: {
+                                    'Content-Type':
+                                        'application/json',
+
+                                    'Authorization':
+                                        `Bearer ${token}`
+                                }
+                            }
+                        );
+
+                    const data =
+                        await res.json();
+
+                    if (data.success) {
+
+                        alert(
+                            data.message
+                        );
+
+                    } else {
+
+                        alert(
+                            "Erro: " +
+                            data.error
+                        );
+
+                    }
+
+                } catch (error) {
+
+                    alert(
+                        "Erro de conexão"
+                    );
+
+                } finally {
+
+                    premiumBtn.textContent =
+                        "Já fiz o pagamento";
+
+                    premiumBtn.disabled =
+                        false;
+
+                }
+
+            }
+        );
+
     }
 
-    next();
-};
 
-// --- ROTAS ---
+    // --- Validação upload ---
+    if (photosInput) {
 
-// 1. Configuração Pública (PIX Key)
-app.get('/api/config/pix', (req, res) => {
-    res.json({
-        pixKey: process.env.PIX_KEY || "Chave não configurada"
-    });
+        photosInput.addEventListener(
+            'change',
+            () => {
+
+                const files =
+                    photosInput.files;
+
+                if (
+                    files.length > 2
+                ) {
+
+                    if (
+                        photoError
+                    ) {
+
+                        photoError.textContent =
+                            "Limite excedido. Máximo 2 fotos.";
+
+                    }
+
+                    photosInput.value =
+                        "";
+
+                } else {
+
+                    if (
+                        photoError
+                    ) {
+
+                        photoError.textContent =
+                            "";
+
+                    }
+
+                }
+
+            }
+        );
+
+    }
+
+
+    // --- Enviar anúncio ---
+    if (adForm) {
+
+        adForm.addEventListener(
+            'submit',
+            async (e) => {
+
+                e.preventDefault();
+
+                if (
+                    photosInput &&
+                    photosInput.files.length > 2
+                ) {
+
+                    alert(
+                        "Corrija as fotos."
+                    );
+
+                    return;
+
+                }
+
+                const formData =
+                    new FormData(
+                        adForm
+                    );
+
+                try {
+
+                    const token =
+                        localStorage.getItem(
+                            'token'
+                        );
+
+                    const res =
+                        await fetch(
+                            '/api/ads/create',
+                            {
+                                method: 'POST',
+
+                                headers: {
+                                    'Authorization':
+                                        `Bearer ${token}`
+                                },
+
+                                body:
+                                    formData
+                            }
+                        );
+
+                    const data =
+                        await res.json();
+
+                    if (
+                        res.ok
+                    ) {
+
+                        alert(
+                            "Sucesso!"
+                        );
+
+                        adForm.reset();
+
+                    } else {
+
+                        alert(
+                            "Erro: " +
+                            data.error
+                        );
+
+                    }
+
+                } catch (error) {
+
+                    alert(
+                        "Erro ao conectar"
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+
+    // --- Fechar premium ---
+    const closePremiumBtn =
+        document.getElementById(
+            'btn-close-premium'
+        );
+
+    if (closePremiumBtn) {
+
+        closePremiumBtn.addEventListener(
+            'click',
+            () => {
+
+                const premium =
+                    document.getElementById(
+                        'screen-premium'
+                    );
+
+                const home =
+                    document.getElementById(
+                        'screen-home'
+                    );
+
+                if (premium) {
+
+                    premium.style.display =
+                        'none';
+
+                    premium.classList.remove(
+                        'active'
+                    );
+
+                }
+
+                if (home) {
+
+                    home.style.display =
+                        'block';
+
+                    home.classList.add(
+                        'active'
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
 });
-
-// 2. Solicitação Premium
-app.post('/api/premium/request', verifyToken, (req, res) => {
-    // Lógica: Registrar no banco de dados o pedido de upgrade
-    // Status inicial: 'pending'
-    res.json({ 
-        success: true, 
-        message: "Solicitação enviada. Aguarde aprovação do admin." 
-    });
-});
-
-// 3. Upload de Anúncio (Protegido)
-app.post('/api/ads/create', verifyToken, upload.array('photos', 5), validateUpload, (req, res) => {
-    // Se passou pelo validateUpload, está seguro.
-    // Salvar dados no banco aqui...
-    res.json({ success: true, message: "Anúncio criado com sucesso!" });
-});
-
-// Fallback para SPA
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
